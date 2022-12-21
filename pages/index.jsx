@@ -32,6 +32,8 @@ const Home = () => {
     providers.forEach((provider) => {
       const [time, setTime] = useState('...');
       const [details, setDetails] = useState({ });
+      const [detailsVisible, setDetailsVisible] = useState(false);
+      const [detailsHandler, setDetailsHandler] = useState(null);
       const [detailsPosition, setDetailsPosition] = useState([ 0, 0 ]);
 
       results[region][provider.key] = {
@@ -42,6 +44,12 @@ const Home = () => {
 
         'details': details,
         'setDetails': setDetails,
+
+        'detailsVisible': detailsVisible,
+        'setDetailsVisible': setDetailsVisible,
+
+        'detailsHandler': detailsHandler,
+        'setDetailsHandler': setDetailsHandler,
 
         'detailsPosition': detailsPosition,
         'setDetailsPosition': setDetailsPosition
@@ -177,10 +185,21 @@ const Home = () => {
 
   useEffect(() => { loadRegions() }, []);
 
+  const showDetails = (region, providerKey, x, y) => {
+    results[region][providerKey].setDetailsHandler(setTimeout(() => {
+      results[region][providerKey].setDetailsVisible(true);
+    }, 500));
+  };
+
   const setDetailsPosition = (region, providerKey, x, y) => {
     if (x || y) {
       results[region][providerKey].setDetailsPosition([ x, y ]);
     }
+  };
+
+  const hideDetails = (region, providerKey, x, y) => {
+    results[region][providerKey].setDetailsVisible(false);
+    clearTimeout(results[region][providerKey].detailsHandler);
   };
 
   return (
@@ -226,7 +245,9 @@ const Home = () => {
                             {
                               regions.map((region) => { return (
                                 <td key={provider.key + '.' + region}
-                                    onMouseMove={(e) => setDetailsPosition(region, provider.key, e.clientX, e.clientY)}>
+                                    onMouseEnter={(e) => showDetails(region, provider.key, e.clientX, e.clientY)}
+                                    onMouseMove={(e) => setDetailsPosition(region, provider.key, e.clientX, e.clientY)}
+                                    onMouseLeave={(e) => hideDetails(region, provider.key, e.clientX, e.clientY)}>
                                   <span>
                                     {
                                       results[region][provider.key].time
@@ -234,6 +255,7 @@ const Home = () => {
                                   </span>
                                   <div className={styles.resultsDetails}
                                        style={{
+                                         display: results[region][provider.key].detailsVisible ? 'block' : 'none',
                                          left: results[region][provider.key].detailsPosition[0],
                                          top: results[region][provider.key].detailsPosition[1]
                                        }}>
