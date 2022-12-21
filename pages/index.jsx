@@ -4,6 +4,14 @@ import styles from '../styles/Home.module.css';
 import { useState, useEffect, useRef } from 'react';
 
 const Home = () => {
+  const tests = [
+    {
+      'key': 'simple',
+      'name': 'Simple Function',
+      'url':  (region) => `https://edge-timing-${region}.vercel.app/api/timer`
+    }
+  ];
+
   const regions = [
     'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1',
     'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1'
@@ -26,39 +34,43 @@ const Home = () => {
 
   const results = [ ];
 
-  regions.forEach((region) => {
-    results[region] = { };
+  tests.forEach((test) => {
+    results[test.key] = { };
 
-    providers.forEach((provider) => {
-      const [time, setTime] = useState('...');
-      const [details, setDetails] = useState({ });
-      const [detailsVisible, setDetailsVisible] = useState(false);
-      const [detailsHandler, setDetailsHandler] = useState(null);
-      const [detailsPosition, setDetailsPosition] = useState([ 0, 0 ]);
+    regions.forEach((region) => {
+      results[test.key][region] = { };
 
-      results[region][provider.key] = {
-        'raw': [ ],
+      providers.forEach((provider) => {
+        const [time, setTime] = useState('...');
+        const [details, setDetails] = useState({ });
+        const [detailsVisible, setDetailsVisible] = useState(false);
+        const [detailsHandler, setDetailsHandler] = useState(null);
+        const [detailsPosition, setDetailsPosition] = useState([ 0, 0 ]);
 
-        'time': time,
-        'setTime': setTime,
+        results[test.key][region][provider.key] = {
+          'raw': [ ],
 
-        'details': details,
-        'setDetails': setDetails,
+          'time': time,
+          'setTime': setTime,
 
-        'detailsVisible': detailsVisible,
-        'setDetailsVisible': setDetailsVisible,
+          'details': details,
+          'setDetails': setDetails,
 
-        'detailsHandler': detailsHandler,
-        'setDetailsHandler': setDetailsHandler,
+          'detailsVisible': detailsVisible,
+          'setDetailsVisible': setDetailsVisible,
 
-        'detailsPosition': detailsPosition,
-        'setDetailsPosition': setDetailsPosition
-      };
+          'detailsHandler': detailsHandler,
+          'setDetailsHandler': setDetailsHandler,
+
+          'detailsPosition': detailsPosition,
+          'setDetailsPosition': setDetailsPosition
+        };
+      });
     });
   });
 
-  const setFailure = (region, message) => {
-    for (const [k, v] of Object.entries(results[region])) {
+  const setFailure = (testKey, region, message) => {
+    for (const [k, v] of Object.entries(results[testKey, region])) {
       v.setTime(message);
     }
   };
@@ -94,112 +106,117 @@ const Home = () => {
   }
 
   let count = 0;
-  const regionsLoaded = useRef(false);
+  const testsLoaded = useRef(false);
 
-  const loadRegions = async () => {
-    if (regionsLoaded.current) {
+  const loadTests = async () => {
+    if (testsLoaded.current) {
       return;
     }
 
-    regionsLoaded.current = true;
+    testsLoaded.current = true;
 
     const promises = { };
     const runs = 10;
 
-    regions.forEach((region) => {
-      promises[region] = new Array();
+    tests.forEach((test) => {
+      promises[test.key] = { }
 
-      for (let i = 0; i < runs; i++) {
-        promises[region].push(fetch(`https://edge-timing-${region}.vercel.app/api/timer`));
-      }
-    });
+      regions.forEach((region) => {
+        promises[test.key][region] = new Array();
 
-    regions.forEach((region) => {
-      Promise.allSettled(Object.values(promises[region])).then((values) => {
-        promises[region].forEach((promise) => {
-          promise
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error(`response from ${region}: ${response.status}`);
-              }
+        for (let i = 0; i < runs; i++) {
+          promises[test.key][region].push(fetch(tests[0].url(region)));
+        }
+      });
 
-              return response.json();
-            })
-            .then((data) => {
-              for (const [providerKey, providerData] of Object.entries(data)) {
-                const providerRawResults = results[region][providerKey].raw;
+      regions.forEach((region) => {
+        Promise.allSettled(Object.values(promises[test.key][region])).then((values) => {
+          promises[test.key][region].forEach((promise) => {
+            promise
+              .then((response) => {
+                if (!response.ok) {
+                  throw new Error(`response from ${region}: ${response.status}`);
+                }
 
-                providerRawResults.push(providerData);
+                return response.json();
+              })
+              .then((data) => {
+                for (const [providerKey, providerData] of Object.entries(data)) {
+                  const providerRawResults = results[test.key][region][providerKey].raw;
 
-                if (providerRawResults.length >= runs) {
-                  const regions = [ ];
-                  let completedTotal = 0;
+                  providerRawResults.push(providerData);
 
-                  const details = {
-                    regions: [ ],
+                  if (providerRawResults.length >= runs) {
+                    const regions = [ ];
+                    let completedTotal = 0;
 
-                    time: {
-                      dns:      { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
-                      connect:  { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
-                      tls:      { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
-                      ttfb:     { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
-                      complete: { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 }
-                    }
-                  };
+                    const details = {
+                      regions: [ ],
 
-                  providerRawResults.forEach((data) => {
-                    details.regions.push(data.region);
-                    console.log(data.time);
+                      time: {
+                        dns:      { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
+                        connect:  { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
+                        tls:      { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
+                        ttfb:     { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 },
+                        complete: { 'total': 0, 'min': Number.MAX_VALUE, 'max': 0 }
+                      }
+                    };
+
+                    providerRawResults.forEach((data) => {
+                      details.regions.push(data.region);
+
+                      [ 'dns', 'connect', 'tls', 'ttfb', 'complete' ].forEach((t) => {
+                        details.time[t].total += data.time[t];
+
+                        if (data.time[t] > details.time[t].max) {
+                          details.time[t].max = data.time[t];
+                        }
+                        if (data.time[t] < details.time[t].min) {
+                          details.time[t].min = data.time[t];
+                        }
+                      });
+                    });
 
                     [ 'dns', 'connect', 'tls', 'ttfb', 'complete' ].forEach((t) => {
-                      details.time[t].total += data.time[t];
-
-                      if (data.time[t] > details.time[t].max) {
-                        details.time[t].max = data.time[t];
-                      }
-                      if (data.time[t] < details.time[t].min) {
-                        details.time[t].min = data.time[t];
-                      }
+                      details.time[t].average = details.time[t].total / providerRawResults.length;
                     });
-                  });
 
-                  [ 'dns', 'connect', 'tls', 'ttfb', 'complete' ].forEach((t) => {
-                    details.time[t].average = details.time[t].total / providerRawResults.length;
-                  });
+                    details.regions = details.regions.filter((val, idx, arr) => arr.indexOf(val) === idx);
 
-                  details.regions = details.regions.filter((val, idx, arr) => arr.indexOf(val) === idx);
-
-                  results[region][providerKey].setTime(round(details.time.complete.average));
-                  results[region][providerKey].setDetails(details);
+                    results[test.key][region][providerKey].setTime(round(details.time.complete.average));
+                    results[test.key][region][providerKey].setDetails(details);
+                  }
                 }
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-              results[region][providerKey].setTime("Fail");
-            });
+              })
+              .catch((error) => {
+                console.error(error);
+                providers.forEach((provider) => {
+                  results[test.key][region][provider.key].setTime("Fail");
+                });
+              });
+          });
         });
       });
     });
   };
 
-  useEffect(() => { loadRegions() }, []);
+  useEffect(() => { loadTests() }, []);
 
-  const showDetails = (region, providerKey, x, y) => {
-    results[region][providerKey].setDetailsHandler(setTimeout(() => {
-      results[region][providerKey].setDetailsVisible(true);
+  const showDetails = (testKey, region, providerKey, x, y) => {
+    results[testKey][region][providerKey].setDetailsHandler(setTimeout(() => {
+      results[testKey][region][providerKey].setDetailsVisible(true);
     }, 500));
   };
 
-  const setDetailsPosition = (region, providerKey, x, y) => {
+  const setDetailsPosition = (testKey, region, providerKey, x, y) => {
     if (x || y) {
-      results[region][providerKey].setDetailsPosition([ x, y ]);
+      results[testKey][region][providerKey].setDetailsPosition([ x, y ]);
     }
   };
 
-  const hideDetails = (region, providerKey, x, y) => {
-    results[region][providerKey].setDetailsVisible(false);
-    clearTimeout(results[region][providerKey].detailsHandler);
+  const hideDetails = (testKey, region, providerKey, x, y) => {
+    results[testKey][region][providerKey].setDetailsVisible(false);
+    clearTimeout(results[testKey][region][providerKey].detailsHandler);
   };
 
   return (
@@ -217,63 +234,69 @@ const Home = () => {
 
         <table className={styles.results}>
           <tbody>
-            <tr>
-              <th className={styles.resultsHeaderSectionBlank}></th>
-              <th className={styles.resultsHeaderSection} colSpan={regions.length}>
-                <h2>Simple Function</h2>
-              </th>
-            </tr>
 
             {
-              [
-                regions.slice(0, Math.ceil(regions.length / 2)),
-                regions.slice((Math.ceil(regions.length) / 2))
-              ].map((regions, idx) => {
-                return (
-                  <>
-                    <tr key={'regions.' + idx}>
-                      <th className={styles.resultsHeaderBlank}></th>
-                      { regions.map((region) => { return ( <th key={region}>{region}</th> ); }) }
-                    </tr>
+              tests.map((test) => {
+                return ( <>
+                  <tr>
+                    <th className={styles.resultsHeaderSectionBlank}></th>
+                    <th className={styles.resultsHeaderSection} colSpan={regions.length}>
+                      <h2>{test.name}</h2>
+                    </th>
+                  </tr>
 
-                    {
-                      providers.map((provider) => {
-                        return (
-                          <tr key={provider.key}>
-                            <th key={provider.key + '.' + 'header'} className={styles.resultsProvider}>{provider.name}</th>
-
-                            {
-                              regions.map((region) => { return (
-                                <td key={provider.key + '.' + region}
-                                    onMouseEnter={(e) => showDetails(region, provider.key, e.clientX, e.clientY)}
-                                    onMouseMove={(e) => setDetailsPosition(region, provider.key, e.clientX, e.clientY)}
-                                    onMouseLeave={(e) => hideDetails(region, provider.key, e.clientX, e.clientY)}>
-                                  <span>
-                                    {
-                                      results[region][provider.key].time
-                                    }
-                                  </span>
-                                  <div className={styles.resultsDetails}
-                                       style={{
-                                         display: results[region][provider.key].detailsVisible ? 'block' : 'none',
-                                         left: results[region][provider.key].detailsPosition[0],
-                                         top: results[region][provider.key].detailsPosition[1]
-                                       }}>
-                                    {
-                                      formatDetails(region, provider, results[region][provider.key].details)
-                                    }
-                                  </div>
-                                </td>
-                              ) })
-                            }
-
+                  {
+                    [
+                      regions.slice(0, Math.ceil(regions.length / 2)),
+                      regions.slice((Math.ceil(regions.length) / 2))
+                    ].map((regions, idx) => {
+                      return (
+                        <>
+                          <tr key={'regions.' + idx}>
+                            <th className={styles.resultsHeaderBlank}></th>
+                            { regions.map((region) => { return ( <th key={region}>{region}</th> ); }) }
                           </tr>
-                        );
-                      })
-                    }
-                  </>
-                );
-              })
+
+                          {
+                            providers.map((provider) => {
+                              return (
+                                <tr key={provider.key}>
+                                  <th key={provider.key + '.' + 'header'} className={styles.resultsProvider}>{provider.name}</th>
+
+                                  {
+                                    regions.map((region) => { return (
+                                      <td key={provider.key + '.' + region}
+                                          onMouseEnter={(e) => showDetails(test.key, region, provider.key, e.clientX, e.clientY)}
+                                          onMouseMove={(e) => setDetailsPosition(test.key, region, provider.key, e.clientX, e.clientY)}
+                                          onMouseLeave={(e) => hideDetails(test.key, region, provider.key, e.clientX, e.clientY)}>
+                                        <span>
+                                          {
+                                            results[test.key][region][provider.key].time
+                                          }
+                                        </span>
+                                        <div className={styles.resultsDetails}
+                                             style={{
+                                               display: results[test.key][region][provider.key].detailsVisible ? 'block' : 'none',
+                                               left: results[test.key][region][provider.key].detailsPosition[0],
+                                               top: results[test.key][region][provider.key].detailsPosition[1]
+                                             }}>
+                                          {
+                                            formatDetails(region, provider, results[test.key][region][provider.key].details)
+                                          }
+                                        </div>
+                                      </td>
+                                    ) })
+                                  }
+
+                                </tr>
+                              );
+                            })
+                          }
+                        </>
+                      );
+                    })
+                }
+              </> ) })
             }
           </tbody>
         </table>
