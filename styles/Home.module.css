@@ -4,7 +4,7 @@
 
 .main {
   min-height: 100vh;
-  padding: 4rem 0;
+  padding: 1rem 0;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -126,4 +126,61 @@
   .logo img {
     filter: invert(1);
   }
+}
+
+table.results {
+  margin-top: 4rem;
+  border-collapse: collapse;
+  width: 100%;
+}
+table.results th, table.results td {
+  border: solid 1px #444444;
+  padding: 0.5rem 0.5rem;
+  text-align: right;
+}
+table.results th {
+  background-color: #dddddd;
+}
+table.results th.resultsHeaderBlank {
+  border-top: none;
+  border-left: none;
+  background-color: #ffffff;
+}
+table.results th.resultsHeaderSectionBlank {
+  border: none;
+  background-color: #ffffff;
+}
+table.results th.resultsHeaderSection {
+  border: none;
+  background-color: #ffffff;
+  text-align: left;
+}
+
+table.results td .resultsDetails {
+  display: none;
+}
+
+table.results td:hover .resultsDetails {
+  background: #ddddee;
+  border: solid 1px #000000;
+  padding: 1rem;
+  display: block;
+  position: absolute;
+  z-index: 100;
+  text-align: left;
+}
+
+.resultsDetailsTitle {
+  margin-bottom: 1rem;
+}
+
+.resultsDetailsTimePrompt {
+  display: inline-block;
+  padding-left: 1rem;
+}
+
+.resultsDetailsTimePromptComplete {
+  display: inline-block;
+  padding-left: 1rem;
+  font-weight: bold;
 }
