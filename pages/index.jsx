@@ -1,10 +1,9 @@
-import type { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useState, useEffect, useRef } from 'react';
 
-const Home: NextPage = () => {
+const Home = () => {
   const regions = [
     'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1',
     'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1'
@@ -25,9 +24,9 @@ const Home: NextPage = () => {
     }
   ];
 
-  const results: any = [ ];
+  const results = [ ];
 
-  regions.forEach((region: string) => {
+  regions.forEach((region) => {
     results[region] = { };
 
     providers.forEach((provider) => {
@@ -50,17 +49,17 @@ const Home: NextPage = () => {
     });
   });
 
-  const setFailure = (region: string, message: string) => {
+  const setFailure = (region, message) => {
     for (const [k, v] of Object.entries(results[region])) {
-      (v as any).setTime(message);
+      v.setTime(message);
     }
   };
 
-  const round = (n: number) => {
+  const round = (n) => {
     return n.toFixed(2);
   }
 
-  const formatDetails = (region: string, provider: any, v: any) => {
+  const formatDetails = (region, provider, v) => {
     if (!v || !v.time) {
       return ( <span>Loading...</span> );
     }
@@ -99,7 +98,7 @@ const Home: NextPage = () => {
     const promises = { };
     const runs = 10;
 
-    regions.forEach((region: string) => {
+    regions.forEach((region) => {
       promises[region] = new Array();
 
       for (let i = 0; i < runs; i++) {
@@ -107,7 +106,7 @@ const Home: NextPage = () => {
       }
     });
 
-    regions.forEach((region: string) => {
+    regions.forEach((region) => {
       Promise.allSettled(Object.values(promises[region])).then((values) => {
         promises[region].forEach((promise) => {
           promise
@@ -167,6 +166,10 @@ const Home: NextPage = () => {
                 }
               }
             })
+            .catch((error) => {
+              console.error(error);
+              results[region][providerKey].setTime("Fail");
+            });
         });
       });
     });
@@ -174,7 +177,7 @@ const Home: NextPage = () => {
 
   useEffect(() => { loadRegions() }, []);
 
-  const setDetailsPosition = (region: string, providerKey: string, x: number, y: number) => {
+  const setDetailsPosition = (region, providerKey, x, y) => {
     if (x || y) {
       results[region][providerKey].setDetailsPosition([ x, y ]);
     }
