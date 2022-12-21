@@ -131,12 +131,12 @@
 table.results {
   margin-top: 4rem;
   border-collapse: collapse;
-  width: 100%;
 }
 table.results th, table.results td {
   border: solid 1px #444444;
   padding: 0.5rem 0.5rem;
   text-align: right;
+  width: 5rem;
 }
 table.results th {
   background-color: #dddddd;
@@ -149,6 +149,9 @@ table.results th.resultsHeaderBlank {
 table.results th.resultsHeaderSectionBlank {
   border: none;
   background-color: #ffffff;
+}
+table.results th.resultsProvider {
+  width: 10rem;
 }
 table.results th.resultsHeaderSection {
   border: none;

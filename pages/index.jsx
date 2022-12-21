@@ -197,7 +197,7 @@ const Home = () => {
         </h1>
 
         <table className={styles.results}>
-          <thead>
+          <tbody>
             <tr>
               <th className={styles.resultsHeaderSectionBlank}></th>
               <th className={styles.resultsHeaderSection} colSpan={regions.length}>
@@ -205,41 +205,51 @@ const Home = () => {
               </th>
             </tr>
 
-            <tr>
-              <th className={styles.resultsHeaderBlank}></th>
-              { regions.map((region, idx) => { return ( <th key={region}>{region}</th> ); }) }
-            </tr>
-          </thead>
-          <tbody>
             {
-              providers.map((provider, idx) => {
+              [
+                regions.slice(0, Math.ceil(regions.length / 2)),
+                regions.slice((Math.ceil(regions.length) / 2))
+              ].map((regions, idx) => {
                 return (
-                  <tr key={provider.key}>
-                    <th key={provider.key + '.' + 'header'}>{provider.name}</th>
+                  <>
+                    <tr key={'regions.' + idx}>
+                      <th className={styles.resultsHeaderBlank}></th>
+                      { regions.map((region) => { return ( <th key={region}>{region}</th> ); }) }
+                    </tr>
+
                     {
-                      regions.map((region, idx) => {
+                      providers.map((provider) => {
                         return (
-                          <td key={provider.key + '.' + region}
-                              onMouseMove={(e) => setDetailsPosition(region, provider.key, e.clientX, e.clientY)}>
-                            <span>
-                              {
-                                results[region][provider.key].time
-                              }
-                            </span>
-                            <div className={styles.resultsDetails}
-                                 style={{
-                                   left: results[region][provider.key].detailsPosition[0],
-                                   top: results[region][provider.key].detailsPosition[1]
-                                 }}>
-                              {
-                                formatDetails(region, provider, results[region][provider.key].details)
-                              }
-                            </div>
-                          </td>
+                          <tr key={provider.key}>
+                            <th key={provider.key + '.' + 'header'} className={styles.resultsProvider}>{provider.name}</th>
+
+                            {
+                              regions.map((region) => { return (
+                                <td key={provider.key + '.' + region}
+                                    onMouseMove={(e) => setDetailsPosition(region, provider.key, e.clientX, e.clientY)}>
+                                  <span>
+                                    {
+                                      results[region][provider.key].time
+                                    }
+                                  </span>
+                                  <div className={styles.resultsDetails}
+                                       style={{
+                                         left: results[region][provider.key].detailsPosition[0],
+                                         top: results[region][provider.key].detailsPosition[1]
+                                       }}>
+                                    {
+                                      formatDetails(region, provider, results[region][provider.key].details)
+                                    }
+                                  </div>
+                                </td>
+                              ) })
+                            }
+
+                          </tr>
                         );
                       })
                     }
-                  </tr>
+                  </>
                 );
               })
             }
