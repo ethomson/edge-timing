@@ -12,6 +12,10 @@ const Home: NextPage = () => {
 
   const tests = [
     {
+      'key': 'cloudflare',
+      'name': 'Cloudflare',
+    },
+    {
       'key': 'deno',
       'name': 'Deno Deploy',
     },
