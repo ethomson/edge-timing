@@ -54,7 +54,7 @@ const Home: NextPage = () => {
     return n.toFixed(2);
   }
 
-  const formatDetails = (region, test, v: any) => {
+  const formatDetails = (region: string, test: any, v: any) => {
     if (!v || !v.time) {
       return ( <span>Loading...</span> );
     }
@@ -115,7 +115,7 @@ const Home: NextPage = () => {
 
   useEffect(() => { loadRegions() }, []);
 
-  const setDetailsPosition = (region, testKey, x, y) => {
+  const setDetailsPosition = (region: string, testKey: string, x: number, y: number) => {
     if (x || y) {
       results[region][testKey].setDetailsPosition([ x, y ]);
     }
