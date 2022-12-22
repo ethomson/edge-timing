@@ -29,7 +29,11 @@ const providers = [
   },
   {
     'key': 'vercel',
-    'name': 'Vercel'
+    'name': 'Vercel (Global)'
+  },
+  {
+    'key': 'vercel-regional',
+    'name': 'Vercel (Regional - iad1)'
   }
 ];
 
@@ -249,7 +253,7 @@ const ResultsTable = (props) => {
         {
           tests.map((test) => {
             return (
-              <TestResults test={test} results={results} />
+              <TestResults key={test} test={test} results={results} />
             )
           })
         }
@@ -284,11 +288,11 @@ const TestResults = (props) => {
         regionGroups.map((regionGroup, idx) => {
           return (
             <>
-              <RegionHeaderRow index={idx} test={test} regions={regionGroup} />
+              <RegionHeaderRow key={ test.name + '.regions.' + idx } index={idx} test={test} regions={regionGroup} />
 
               {
                 providers.map((provider) => {
-                  return ( <ProviderTestResultsRow test={test} regions={regionGroup} provider={provider} results={results} /> );
+                  return ( <ProviderTestResultsRow key={ test.name + '.' + provider.key + '.results' } test={test} regions={regionGroup} provider={provider} results={results} /> );
                 })
               }
             </>
@@ -336,7 +340,7 @@ const ProviderTestResultsRow = (props) => {
         regions.map((region) => {
           const testResults = results[test.key][region][provider.key];
 
-          return ( <ResultCell test={test} regions={regions} provider={provider} testResults={testResults} /> );
+          return ( <ResultCell key={test.key + '.' + provider.key + '.' + region} test={test} regions={regions} provider={provider} testResults={testResults} /> );
         })
       }
 
