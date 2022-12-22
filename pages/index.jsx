@@ -3,35 +3,75 @@ import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import { useState, useEffect, useRef } from 'react';
 
+// configuration
+
+const tests = [
+  {
+    'key': 'simple',
+    'name': 'Simple Function',
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/timer`
+  }
+];
+
+const regions = [
+  'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1',
+  'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1'
+];
+
+const providers = [
+  {
+    'key': 'cloudflare',
+    'name': 'Cloudflare',
+  },
+  {
+    'key': 'deno',
+    'name': 'Deno Deploy',
+  },
+  {
+    'key': 'vercel',
+    'name': 'Vercel'
+  }
+];
+
+// lfg
+
+const setFailure = (testKey, region, message) => {
+  for (const [k, v] of Object.entries(results[testKey, region])) {
+    v.setTime(message);
+  }
+};
+
+const round = (n) => {
+  return n.toFixed(2);
+}
+
+const formatDetails = (region, provider, v) => {
+  if (!v || !v.time) {
+    return ( <span>Loading...</span> );
+  }
+
+  return (
+    <div>
+      <div className={styles.resultsDetailsTitle}>
+        <b>{provider.name} from {region}</b>
+      </div>
+
+      <div>
+        <b>Region:</b> {v.regions.join(', ')}<br />
+      </div>
+      <div>
+        <b>Timing details (min / avg / max):</b><br />
+        <span className={styles.resultsDetailsTimePrompt}>DNS:</span> {round(v.time.dns.min)} / {round(v.time.dns.average)} / {round(v.time.dns.max)} ms<br />
+        <span className={styles.resultsDetailsTimePrompt}>Connect:</span> {round(v.time.connect.min)} / {round(v.time.connect.average)} / {round(v.time.connect.max)} ms<br />
+        <span className={styles.resultsDetailsTimePrompt}>TLS:</span> {round(v.time.tls.min)} / {round(v.time.tls.average)} / {round(v.time.tls.max)} ms<br />
+        <span className={styles.resultsDetailsTimePrompt}>TTFB:</span> {round(v.time.ttfb.min)} / {round(v.time.ttfb.average)} / {round(v.time.ttfb.max)} ms<br />
+        <span className={styles.resultsDetailsTimePromptComplete}>Complete:</span> {round(v.time.complete.min)} / {round(v.time.complete.average)} / {round(v.time.complete.max)} ms<br />
+      </div>
+    </div>
+  );
+}
+
 const Home = () => {
-  const tests = [
-    {
-      'key': 'simple',
-      'name': 'Simple Function',
-      'url':  (region) => `https://edge-timing-${region}.vercel.app/api/timer`
-    }
-  ];
-
-  const regions = [
-    'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1',
-    'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1'
-  ];
-
-  const providers = [
-    {
-      'key': 'cloudflare',
-      'name': 'Cloudflare',
-    },
-    {
-      'key': 'deno',
-      'name': 'Deno Deploy',
-    },
-    {
-      'key': 'vercel',
-      'name': 'Vercel'
-    }
-  ];
-
   const results = [ ];
 
   tests.forEach((test) => {
@@ -69,41 +109,6 @@ const Home = () => {
     });
   });
 
-  const setFailure = (testKey, region, message) => {
-    for (const [k, v] of Object.entries(results[testKey, region])) {
-      v.setTime(message);
-    }
-  };
-
-  const round = (n) => {
-    return n.toFixed(2);
-  }
-
-  const formatDetails = (region, provider, v) => {
-    if (!v || !v.time) {
-      return ( <span>Loading...</span> );
-    }
-
-    return (
-      <div>
-        <div className={styles.resultsDetailsTitle}>
-          <b>{provider.name} from {region}</b>
-        </div>
-
-        <div>
-          <b>Region:</b> {v.regions.join(', ')}<br />
-        </div>
-        <div>
-          <b>Timing details (min / avg / max):</b><br />
-          <span className={styles.resultsDetailsTimePrompt}>DNS:</span> {round(v.time.dns.min)} / {round(v.time.dns.average)} / {round(v.time.dns.max)} ms<br />
-          <span className={styles.resultsDetailsTimePrompt}>Connect:</span> {round(v.time.connect.min)} / {round(v.time.connect.average)} / {round(v.time.connect.max)} ms<br />
-          <span className={styles.resultsDetailsTimePrompt}>TLS:</span> {round(v.time.tls.min)} / {round(v.time.tls.average)} / {round(v.time.tls.max)} ms<br />
-          <span className={styles.resultsDetailsTimePrompt}>TTFB:</span> {round(v.time.ttfb.min)} / {round(v.time.ttfb.average)} / {round(v.time.ttfb.max)} ms<br />
-          <span className={styles.resultsDetailsTimePromptComplete}>Complete:</span> {round(v.time.complete.min)} / {round(v.time.complete.average)} / {round(v.time.complete.max)} ms<br />
-        </div>
-      </div>
-    );
-  }
 
   let count = 0;
   const testsLoaded = useRef(false);
@@ -202,23 +207,6 @@ const Home = () => {
 
   useEffect(() => { loadTests() }, []);
 
-  const showDetails = (testKey, region, providerKey, x, y) => {
-    results[testKey][region][providerKey].setDetailsHandler(setTimeout(() => {
-      results[testKey][region][providerKey].setDetailsVisible(true);
-    }, 500));
-  };
-
-  const setDetailsPosition = (testKey, region, providerKey, x, y) => {
-    if (x || y) {
-      results[testKey][region][providerKey].setDetailsPosition([ x, y ]);
-    }
-  };
-
-  const hideDetails = (testKey, region, providerKey, x, y) => {
-    results[testKey][region][providerKey].setDetailsVisible(false);
-    clearTimeout(results[testKey][region][providerKey].detailsHandler);
-  };
-
   return (
     <div className={styles.container}>
       <Head>
@@ -232,74 +220,7 @@ const Home = () => {
           Edge Timing
         </h1>
 
-        <table className={styles.results}>
-          <tbody>
-
-            {
-              tests.map((test) => {
-                return ( <>
-                  <tr>
-                    <th className={styles.resultsHeaderSectionBlank}></th>
-                    <th className={styles.resultsHeaderSection} colSpan={regions.length}>
-                      <h2>{test.name}</h2>
-                    </th>
-                  </tr>
-
-                  {
-                    [
-                      regions.slice(0, Math.ceil(regions.length / 2)),
-                      regions.slice((Math.ceil(regions.length) / 2))
-                    ].map((regions, idx) => {
-                      return (
-                        <>
-                          <tr key={'regions.' + idx}>
-                            <th className={styles.resultsHeaderBlank}></th>
-                            { regions.map((region) => { return ( <th key={region}>{region}</th> ); }) }
-                          </tr>
-
-                          {
-                            providers.map((provider) => {
-                              return (
-                                <tr key={provider.key}>
-                                  <th key={provider.key + '.' + 'header'} className={styles.resultsProvider}>{provider.name}</th>
-
-                                  {
-                                    regions.map((region) => { return (
-                                      <td key={provider.key + '.' + region}
-                                          onMouseEnter={(e) => showDetails(test.key, region, provider.key, e.clientX, e.clientY)}
-                                          onMouseMove={(e) => setDetailsPosition(test.key, region, provider.key, e.clientX, e.clientY)}
-                                          onMouseLeave={(e) => hideDetails(test.key, region, provider.key, e.clientX, e.clientY)}>
-                                        <span>
-                                          {
-                                            results[test.key][region][provider.key].time
-                                          }
-                                        </span>
-                                        <div className={styles.resultsDetails}
-                                             style={{
-                                               display: results[test.key][region][provider.key].detailsVisible ? 'block' : 'none',
-                                               left: results[test.key][region][provider.key].detailsPosition[0],
-                                               top: results[test.key][region][provider.key].detailsPosition[1]
-                                             }}>
-                                          {
-                                            formatDetails(region, provider, results[test.key][region][provider.key].details)
-                                          }
-                                        </div>
-                                      </td>
-                                    ) })
-                                  }
-
-                                </tr>
-                              );
-                            })
-                          }
-                        </>
-                      );
-                    })
-                }
-              </> ) })
-            }
-          </tbody>
-        </table>
+        <ResultsTable results={results} />
       </main>
 
       <footer className={styles.footer}>
@@ -317,5 +238,157 @@ const Home = () => {
     </div>
   )
 };
+
+const ResultsTable = (props) => {
+  const results = props.results;
+
+  return (
+    <table className={styles.results}>
+      <tbody>
+
+        {
+          tests.map((test) => {
+            return (
+              <TestResults test={test} results={results} />
+            )
+          })
+        }
+      </tbody>
+    </table>
+  )
+};
+
+const TestResults = (props) => {
+  const test = props.test;
+  const results = props.results;
+
+  const regionsPerRow = props.regionsPerRow || 9;
+
+  const regionGroups = [ regions ];
+
+  while (regionGroups[regionGroups.length - 1].length > regionsPerRow) {
+    regionGroups.push(regionGroups[regionGroups.length - 1].slice(regionsPerRow));
+    regionGroups[regionGroups.length - 2] = regionGroups[regionGroups.length - 2].slice(0, regionsPerRow);
+  }
+
+  return (
+    <>
+      <tr>
+        <th className={styles.resultsHeaderSectionBlank}></th>
+        <th className={styles.resultsHeaderSection} colSpan={regionsPerRow}>
+          <h2>{test.name}</h2>
+        </th>
+      </tr>
+
+      {
+        regionGroups.map((regionGroup, idx) => {
+          return (
+            <>
+              <RegionHeaderRow index={idx} test={test} regions={regionGroup} />
+
+              {
+                providers.map((provider) => {
+                  return ( <ProviderTestResultsRow test={test} regions={regionGroup} provider={provider} results={results} /> );
+                })
+              }
+            </>
+          );
+        })
+    }
+  </>
+  );
+}
+
+const RegionHeaderRow = (props) => {
+  const index = props.index;
+  const test = props.test;
+  const regions = props.regions;
+
+  return (
+    <tr key={test + '.regions.' + index + '.header'}>
+      <th key={test + '.regions.' + index + '.blank'} className={styles.resultsHeaderBlank}></th>
+      {
+        regions.map((region) => {
+          return (
+            <th key={test + '.regions.' + index + '.header.' + region}>
+              {region}
+            </th>
+          );
+        })
+      }
+    </tr>
+  );
+}
+
+const ProviderTestResultsRow = (props) => {
+  const test = props.test;
+  const provider = props.provider;
+  const regions = props.regions;
+  const results = props.results;
+
+  return (
+    <tr key={test.key + '.' + provider.key}>
+      <th key={test.key + '.' + provider.key + '.' + 'header'} className={styles.resultsProvider}>
+        {provider.name}
+      </th>
+
+      {
+        regions.map((region) => {
+          const testResults = results[test.key][region][provider.key];
+
+          return ( <ResultCell test={test} regions={regions} provider={provider} testResults={testResults} /> );
+        })
+      }
+
+    </tr>
+  );
+}
+
+const ResultCell = (props) => {
+  const test = props.test;
+  const provider = props.provider;
+  const region = props.region;
+  const testResults = props.testResults;
+
+  const showDetails = () => {
+    testResults.setDetailsHandler(setTimeout(() => {
+      testResults.setDetailsVisible(true);
+    }, 500));
+  };
+
+  const setDetailsPosition = (x, y) => {
+    if (x || y) {
+      testResults.setDetailsPosition([ x, y ]);
+    }
+  };
+
+  const hideDetails = () => {
+    testResults.setDetailsVisible(false);
+    clearTimeout(testResults.detailsHandler);
+  };
+
+  return (
+    <td key={provider.key + '.' + region}
+        onMouseEnter={(e) => showDetails()}
+        onMouseMove={(e) => setDetailsPosition(e.clientX, e.clientY)}
+        onMouseLeave={(e) => hideDetails()}>
+      <span>
+        {
+          testResults.time
+        }
+      </span>
+      <div className={styles.resultsDetails}
+           style={{
+             display: testResults.detailsVisible ? 'block' : 'none',
+             left: testResults.detailsPosition[0],
+             top: testResults.detailsPosition[1]
+           }}>
+        {
+          formatDetails(region, provider, testResults.details)
+        }
+      </div>
+    </td>
+  );
+}
 
 export default Home;
