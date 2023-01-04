@@ -9,17 +9,20 @@ const tests = [
   {
     'key': 'ping',
     'name': 'Simple Edge Function (Ping)',
-    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=ping`
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=ping`,
+    'description': 'Simply returns a 200.'
   },
   {
     'key': 'planetscale',
     'name': 'PlanetScale (One Query)',
-    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale`
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale`,
+    'description': 'Executes a single SELECT query against a PlanetScale database in AWS us-east-1.'
   },
   {
     'key': 'planetscale-multiple',
     'name': 'PlanetScale (Multiple Queries)',
-    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale-multiple`
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale-multiple`,
+    'description': 'Executes ten individual SELECT queries against a PlanetScale database in AWS us-east-1.'
   },
 ];
 
@@ -292,12 +295,43 @@ const TestResults = (props) => {
     regionGroups[regionGroups.length - 2] = regionGroups[regionGroups.length - 2].slice(0, regionsPerRow);
   }
 
+  const [descriptionVisible, setDescriptionVisible] = useState(false);
+  const [descriptionHandler, setDescriptionHandler] = useState(null);
+  const [descriptionPosition, setDescriptionPosition] = useState([ 0, 0 ]);
+
+  const showDescription = () => {
+    setDescriptionHandler(setTimeout(() => {
+      setDescriptionVisible(true);
+    }, 500));
+  };
+
+  const hideDescription = () => {
+    setDescriptionVisible(false);
+    clearTimeout(descriptionHandler);
+  };
+
   return (
     <>
       <tr key={test.key + '.' + 'header'}>
         <th key={test.key + '.' + 'header.blank'} className={styles.resultsHeaderSectionBlank}></th>
         <th key={test.key + '.' + 'header.title'} className={styles.resultsHeaderSection} colSpan={regionsPerRow}>
-          <h2>{test.name}</h2>
+          <h2>
+            {test.name}
+
+            <span className={styles.testQuestionMark}
+                  onMouseEnter={(e) => showDescription()}
+                  onMouseMove={(e) => setDescriptionPosition(e.pageX, e.pageY)}
+                  onMouseLeave={(e) => hideDescription()}>?</span>
+          </h2>
+
+          <div className={styles.testDescription}
+               style={{
+                 display: descriptionVisible ? 'block' : 'none',
+                 left: descriptionPosition[0],
+                 top: descriptionPosition[1]
+               }}>
+            {test.description}
+          </div>
         </th>
       </tr>
 
