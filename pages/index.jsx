@@ -235,6 +235,12 @@ const Home = () => {
           Edge Timing
         </h1>
 
+        <p className={styles.description}>
+          Each test connects to the provider (Cloudflare, Deno, Vercel) <i>from</i> the
+          specific region to execute an edge function. Each test is run ten times, and
+          the average time to complete the request is shown. Hover for more details on timing.
+        </p>
+
         <ResultsTable results={results} />
       </main>
 
