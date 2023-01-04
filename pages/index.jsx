@@ -264,7 +264,7 @@ const ResultsTable = (props) => {
         {
           tests.map((test) => {
             return (
-              <TestResults key={test} test={test} results={results} />
+              <TestResults key={test.key} test={test} results={results} />
             )
           })
         }
@@ -288,9 +288,9 @@ const TestResults = (props) => {
 
   return (
     <>
-      <tr>
-        <th className={styles.resultsHeaderSectionBlank}></th>
-        <th className={styles.resultsHeaderSection} colSpan={regionsPerRow}>
+      <tr key={test.key + '.' + 'header'}>
+        <th key={test.key + '.' + 'header.blank'} className={styles.resultsHeaderSectionBlank}></th>
+        <th key={test.key + '.' + 'header.title'} className={styles.resultsHeaderSection} colSpan={regionsPerRow}>
           <h2>{test.name}</h2>
         </th>
       </tr>
@@ -385,7 +385,7 @@ const ResultCell = (props) => {
   return (
     <td key={provider.key + '.' + region}
         onMouseEnter={(e) => showDetails()}
-        onMouseMove={(e) => setDetailsPosition(e.clientX, e.clientY)}
+        onMouseMove={(e) => setDetailsPosition(e.pageX, e.pageY)}
         onMouseLeave={(e) => hideDetails()}>
       <span>
         {
