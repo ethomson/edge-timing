@@ -129,7 +129,8 @@
 }
 
 table.results {
-  margin-top: 4rem;
+  margin-top: 1rem;
+  margin-bottom: 3rem;
   border-collapse: collapse;
 }
 table.results th, table.results td {
@@ -154,6 +155,7 @@ table.results th.resultsProvider {
   width: 15rem;
 }
 table.results th.resultsHeaderSection {
+  padding-top: 3rem;
   border: none;
   background-color: #ffffff;
   text-align: left;

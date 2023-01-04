@@ -7,10 +7,20 @@ import { useState, useEffect, useRef } from 'react';
 
 const tests = [
   {
-    'key': 'simple',
-    'name': 'Simple Function',
-    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/timer`
-  }
+    'key': 'ping',
+    'name': 'Simple Edge Function (Ping)',
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=ping`
+  },
+  {
+    'key': 'planetscale',
+    'name': 'PlanetScale (One Query)',
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale`
+  },
+  {
+    'key': 'planetscale-multiple',
+    'name': 'PlanetScale (Multiple Queries)',
+    'url':  (region) => `https://edge-timing-${region}.vercel.app/api/measure?measurement=planetscale-multiple`
+  },
 ];
 
 const regions = [
@@ -49,7 +59,7 @@ const round = (n) => {
   return n.toFixed(2);
 }
 
-const formatDetails = (region, provider, v) => {
+const formatDetails = (testName, region, provider, v) => {
   if (!v || !v.time) {
     return ( <span>Loading...</span> );
   }
@@ -57,7 +67,8 @@ const formatDetails = (region, provider, v) => {
   return (
     <div>
       <div className={styles.resultsDetailsTitle}>
-        <b>{provider.name} from {region}</b>
+        <b>{testName}</b><br />
+        <b>from {region} to {provider.name}</b>
       </div>
 
       <div>
@@ -134,7 +145,7 @@ const Home = () => {
         promises[test.key][region] = new Array();
 
         for (let i = 0; i < runs; i++) {
-          promises[test.key][region].push(fetch(tests[0].url(region)));
+          promises[test.key][region].push(fetch(test.url(region)));
         }
       });
 
@@ -340,7 +351,7 @@ const ProviderTestResultsRow = (props) => {
         regions.map((region) => {
           const testResults = results[test.key][region][provider.key];
 
-          return ( <ResultCell key={test.key + '.' + provider.key + '.' + region} test={test} regions={regions} provider={provider} testResults={testResults} /> );
+          return ( <ResultCell key={test.key + '.' + provider.key + '.' + region} test={test} region={region} provider={provider} testResults={testResults} /> );
         })
       }
 
@@ -388,7 +399,7 @@ const ResultCell = (props) => {
              top: testResults.detailsPosition[1]
            }}>
         {
-          formatDetails(region, provider, testResults.details)
+          formatDetails(test.name, region, provider, testResults.details)
         }
       </div>
     </td>
